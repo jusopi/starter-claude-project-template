@@ -86,10 +86,4 @@ Once you have enough context:
 
 ## Ongoing maintenance
 
-`CLAUDE.md` is a living document. Two ways an update happens:
-
-**User-initiated:** if the user says something like *"update CLAUDE.md"*, *"sync the CLAUDE.md"*, or *"add that to CLAUDE.md"*, treat it as a direct instruction — summarize what changed, propose the specific edit, and write it once confirmed.
-
-**Claude-solicited:** at the end of a session, or after a major decision/milestone, ask: *"Want me to update CLAUDE.md with what we decided/built today?"* Wait for a yes before writing anything. Don't solicit more than once per session unless something changed after the first ask.
-
-In both cases: never write to `CLAUDE.md` without an explicit go-ahead from the user first, and never modify `docs/working-with-user.md`.
+CLAUDE.md is a living document. Ongoing updates (user-initiated or Claude-solicited) are handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`.

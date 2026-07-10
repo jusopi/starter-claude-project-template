@@ -1,3 +1,5 @@
+**DO NOT ERASE THIS SECTION**
+Do not erase or remove these @path import lines:
 @docs/working-with-user.md
 
 ---

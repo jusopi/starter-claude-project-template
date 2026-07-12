@@ -80,9 +80,8 @@ Give them a chance to redirect before you write anything. Don't skip this step.
 Once you have enough context:
 
 1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward.
-2. Replace the stub `CLAUDE.md` in this repo with the generated version.
+2. Replace the stub `CLAUDE.md` in this repo with the generated version. If the stub contains any `@path` import lines (e.g. `@docs/some-file.md`), carry them forward into the generated version unchanged — don't drop them, or the docs they pull in get silently orphaned.
 3. Leave `docs/project-intake.md` in place — do not delete it. It stays in the repo in case the project needs re-intake or scope revisiting later.
-4. **Never modify `docs/working-with-user.md`** — it's fixed, applies across all projects, and is not part of intake output. `CLAUDE.md` imports it via `@docs/working-with-user.md`; only replace the project-specific content in `CLAUDE.md` itself.
 
 ## Ongoing maintenance
 

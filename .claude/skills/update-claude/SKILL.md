@@ -14,8 +14,7 @@ description: Update CLAUDE.md with new project context or decisions. Use when th
 ## Hard rules
 
 - Never write to `CLAUDE.md` without an explicit go-ahead from the user first. To make that go-ahead real rather than a formality, switch to plan mode (`EnterPlanMode`) before drafting the update: present the proposed additions/removals/edits as a plan and let the normal plan-approval flow (`ExitPlanMode`) gate the actual write. Don't edit `CLAUDE.md` directly outside of that approved-plan flow.
-- **Never modify `docs/working-with-user.md`** — it's fixed, applies across all projects, and is not part of this skill's scope. `CLAUDE.md` imports it via `@docs/working-with-user.md`; only edit the project-specific content in `CLAUDE.md` itself.
-- **Always preserve the top-level import block** in `CLAUDE.md` (the section marked `DO NOT ERASE THIS SECTION`), including the `@docs/working-with-user.md` import line. Never erase or remove it, even when rewriting the rest of the file.
+- **Preserve any `@path` import lines** already present in `CLAUDE.md` (e.g. `@docs/some-file.md`) — these pull in other docs, and dropping one during a rewrite silently orphans that doc from the project's instructions. Carry them forward untouched unless the user explicitly asks to remove one.
 - If `CLAUDE.md` still contains the placeholder "Awaiting project context" stub, that means intake hasn't run yet — point the user to `docs/project-intake.md` to generate the initial project-specific content instead of trying to patch the stub incrementally.
 
 ## What counts as project state
@@ -31,7 +30,7 @@ Project state means different things for a codebase-heavy project (web app, CLI,
 - **Goal/mission** — what the business or service is trying to accomplish
 - **Audience** — who it's for, who the customer/user actually is
 - **Owner** — who's driving this (the user's role: solo founder, side project, part of a team, etc.)
-- **Competitive landscape** — existing products/companies that overlap, and how this differs (mirrors the "Existing solutions check" habit in `docs/working-with-user.md` — don't relitigate that check, just keep CLAUDE.md's record of it current as the landscape or positioning shifts)
+- **Competitive landscape** — existing products/companies that overlap, and how this differs (mirrors the "Existing solutions check" habit the user expects Claude to apply — don't relitigate that check, just keep CLAUDE.md's record of it current as the landscape or positioning shifts)
 - **Stage/model** — how it makes money (or plans to), what stage it's at (idea, validating, building, live)
 - **Key decisions/constraints** — choices made in conversation that aren't obvious from the code or from a casual read of the idea
 - **Known TODOs/open issues** — worth surfacing to a future session

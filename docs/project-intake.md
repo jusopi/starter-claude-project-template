@@ -81,9 +81,9 @@ Once you have enough context:
 
 1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward.
 2. Replace the stub `CLAUDE.md` in this repo with the generated version. If the stub contains any `@path` import lines (e.g. `@docs/some-file.md`), carry them forward into the generated version unchanged — don't drop them, or the docs they pull in get silently orphaned.
-3. Initialize the three companion docs the same pass — `docs/backlog.md`, `docs/TASKS.md`, `docs/design-decisions.md` — each already present as a stub. Replace a stub with real starter content if intake surfaced anything that belongs there (e.g. an initial backlog item, an already-locked decision); otherwise leave it stubbed-but-present rather than deleting it. Do not fold their contents into `CLAUDE.md` itself — `CLAUDE.md` should stay a summary, not a duplicate checklist.
+3. Initialize the three companion docs the same pass — `docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md` — each already present as a stub. Replace a stub with real starter content if intake surfaced anything that belongs there (e.g. an initial backlog item, an already-locked decision); otherwise leave it stubbed-but-present rather than deleting it. Do not fold their contents into `CLAUDE.md` itself — `CLAUDE.md` should stay a summary, not a duplicate checklist.
 4. Leave `docs/project-intake.md` in place — do not delete it. It stays in the repo in case the project needs re-intake or scope revisiting later.
 
 ## Ongoing maintenance
 
-CLAUDE.md is a living document, and so are its three companion docs (`docs/backlog.md`, `docs/TASKS.md`, `docs/design-decisions.md`). Ongoing updates to all four (user-initiated or Claude-solicited) are handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`.
+CLAUDE.md is a living document, and so are its three companion docs (`docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md`). Ongoing updates to all four (user-initiated or Claude-solicited) are handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`.

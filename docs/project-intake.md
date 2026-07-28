@@ -59,6 +59,12 @@ Regardless of project type, ask about the following. Offer the suggested default
 
 **MCP (Model Context Protocol):** Ask if they plan to use MCP servers for this project — e.g. connecting to GitHub, databases, Figma, or other services directly from Claude. If yes, ask which integrations matter so `CLAUDE.md` can note which MCP connectors this project expects to have available.
 
+**Notion sync (optional):** Ask if they use a Claude.ai project alongside Claude Code for this project — e.g. voice/chat sessions for ideation or spec-drafting away from the repo — and if so, whether they want a Notion workspace that mirrors `CLAUDE.md`/`docs/backlog.md`/`docs/activity-log.md`/`docs/design-decisions.md`, plus a queue page for ideas raised in a Claude.ai session with no live Claude Code session to catch them. If yes:
+  - Note in `CLAUDE.md` (Step 5) that Notion sync is wanted but the workspace itself isn't set up yet — the actual pages get created by running `bootstrap-notion-project` afterward, which produces the real page URLs `CLAUDE.md`'s `### Notion workspace` heading needs.
+  - Flag that this also requires a **one-time, per-machine manual step** to connect the Notion MCP server to Claude Code (an interactive OAuth login, not something intake or any skill can do on its own) — point the user to `docs/notion-mcp-setup.md` for the exact commands.
+  - Ongoing sync (pushing local changes to the mirror pages, and surfacing queued ideas from the queue page) is then handled by the `sync-notion` skill, invoked from `update-claude` — see that skill for the mechanics.
+  - If no, or undecided, skip this — don't add a placeholder heading for something not opted into. `sync-notion`/`update-claude` both silently skip Notion entirely when no `### Notion workspace` heading exists, so there's no cost to leaving it out until/unless the user wants it later.
+
 **Project-type-specific tooling:** Offer relevant defaults for the classified type rather than asking generically:
 - *Game:* Godot or Unity for engine, Aseprite for pixel art, itch.io for playtest distribution.
 - *Web app:* Vercel for deploy, Supabase for managed backend/auth/db, v0.dev for fast UI scaffolding.
@@ -82,8 +88,25 @@ Once you have enough context:
 1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward.
 2. Replace the stub `CLAUDE.md` in this repo with the generated version. If the stub contains any `@path` import lines (e.g. `@docs/some-file.md`), carry them forward into the generated version unchanged — don't drop them, or the docs they pull in get silently orphaned.
 3. Initialize the three companion docs the same pass — `docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md` — each already present as a stub. Replace a stub with real starter content if intake surfaced anything that belongs there (e.g. an initial backlog item, an already-locked decision); otherwise leave it stubbed-but-present rather than deleting it. Do not fold their contents into `CLAUDE.md` itself — `CLAUDE.md` should stay a summary, not a duplicate checklist.
-4. Leave `docs/project-intake.md` in place — do not delete it. It stays in the repo in case the project needs re-intake or scope revisiting later.
+4. If Step 3 surfaced that the user wants Notion sync, add this exact placeholder heading to `CLAUDE.md`:
+
+   ```markdown
+   ### Notion workspace
+
+   `sync-notion:managed`
+
+   - Hub: [not yet bootstrapped — run bootstrap-notion-project]
+   - Instructions / Backlog / Activity Log / Design Decisions / notion-to-code-sync: TBD
+   - This Notion workspace is a mirror maintained by `sync-notion` — pages
+     are pushed from these local files, never edited directly in Notion.
+     `update-notion-project` should not run against it.
+   ```
+
+   The inline-code line `` `sync-notion:managed` `` right under the heading is the **actual signal** `update-notion-project` checks for — an exact substring match, not a fuzzy read of the prose below it. Never remove that line. The prose sentence after it exists for human readers only and can be freely reworded, shortened, or restructured without breaking anything — that's the point of separating them: a routine editorial pass on the readable text can't accidentally disable the safety check the way a single shared warning sentence could.
+
+   Do not fabricate real page URLs here. Prompt the user to run `bootstrap-notion-project` as a follow-up step; once that completes, its real page URLs replace the `TBD`/`not yet bootstrapped` placeholders, but the `` `sync-notion:managed` `` line and the warning paragraph both stay as-is.
+5. Leave `docs/project-intake.md` in place — do not delete it. It stays in the repo in case the project needs re-intake or scope revisiting later.
 
 ## Ongoing maintenance
 
-CLAUDE.md is a living document, and so are its three companion docs (`docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md`). Ongoing updates to all four (user-initiated or Claude-solicited) are handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`.
+CLAUDE.md is a living document, and so are its three companion docs (`docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md`). Ongoing updates to all four (user-initiated or Claude-solicited) are handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`. If a Notion workspace was set up for this project, `/update-claude` also keeps it in sync via the `sync-notion` skill — see `.claude/skills/sync-notion/SKILL.md`.

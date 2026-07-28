@@ -17,6 +17,7 @@ model: claude-haiku-4-5-20251001
 - Never write to `CLAUDE.md` without an explicit go-ahead from the user first. To make that go-ahead real rather than a formality, switch to plan mode (`EnterPlanMode`) before drafting the update: present the proposed additions/removals/edits as a plan and let the normal plan-approval flow (`ExitPlanMode`) gate the actual write. Don't edit `CLAUDE.md` directly outside of that approved-plan flow.
 - **Preserve any `@path` import lines** already present in `CLAUDE.md` (e.g. `@docs/some-file.md`) — these pull in other docs, and dropping one during a rewrite silently orphans that doc from the project's instructions. Carry them forward untouched unless the user explicitly asks to remove one.
 - If `CLAUDE.md` still contains the placeholder "Awaiting project context" stub, that means intake hasn't run yet — point the user to `docs/project-intake.md` to generate the initial project-specific content instead of trying to patch the stub incrementally.
+- **Notion mirror pages are never a source of truth.** If `sync-notion` reports a mismatch between a mirror page and its local file, the local file wins — don't ask the user to reconcile it, just note that the next push will correct it.
 
 ## What counts as project state
 
@@ -50,6 +51,14 @@ At the Claude-solicited checkpoint, do a cheap staleness check before asking —
 - **Self-report the drift check itself**, every run: the plan presented via `EnterPlanMode`/`ExitPlanMode` must include a visible log of which signals were checked (manifest/directory state, `git log` themes, CLAUDE.md's `## Project` section, and consistency against `docs/backlog.md`, `docs/activity-log.md`, and `docs/design-decisions.md`) and the finding for each — including an explicit "no drift" where nothing was found — not just the resulting proposed edits. This makes the check auditable rather than silent.
 
 **Full drift-pass, not just session-triggered:** don't only check `docs/design-decisions.md` against *this session's* work — that misses staleness in sections nobody touched recently (e.g. a note that was never revisited after the thing it describes actually changed elsewhere). At every Claude-solicited checkpoint, do one pass over the full `docs/design-decisions.md` file, not just the parts relevant to today, and flag anything that contradicts current reality even if this session didn't cause it.
+
+## Notion sync
+
+If this project has a Notion workspace (check `CLAUDE.md` for a `### Notion workspace` heading), this skill's drift-check pass and its write also cover Notion, via the `sync-notion` skill:
+
+- **At the start of this skill's drift-check pass**, run `sync-notion`'s pull step: check the `notion-to-code-sync` page for unprocessed entries and surface them to the user before proceeding with the rest of the drift check. Treat anything surfaced there the same as any other drift signal — it may change what this run's plan should include.
+- **After the local write is approved and made**, run `sync-notion`'s push step to mirror the same `CLAUDE.md`/`docs/backlog.md`/`docs/activity-log.md`/`docs/design-decisions.md` changes to their Notion pages, under the same go-ahead — don't ask separately.
+- If `CLAUDE.md` has no `### Notion workspace` heading, or the heading is still a placeholder (no real page URLs yet), this project hasn't been bootstrapped into Notion — skip both steps silently, don't prompt to set it up unless the user brings it up.
 
 ## Companion docs — keep docs/backlog.md and docs/activity-log.md in sync
 

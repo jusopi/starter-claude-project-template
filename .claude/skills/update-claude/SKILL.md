@@ -20,7 +20,7 @@ Every invocation of this skill also does two things that are **not** gated behin
 - **Preserve any `@path` import lines** already present in `CLAUDE.md` (e.g. `@docs/some-file.md`) — these pull in other docs, and dropping one during a rewrite silently orphans that doc from the project's instructions. Carry them forward untouched unless the user explicitly asks to remove one.
 - If `CLAUDE.md` still contains the placeholder "Awaiting project context" stub, that means intake hasn't run yet — point the user to `docs/project-intake.md` to generate the initial project-specific content instead of trying to patch the stub incrementally.
 - **This skill only ever reads from Notion and writes to the local `docs/archive/` snapshot — never the reverse.** There is no push flow. If a Notion page and the local archive disagree, Notion wins, silently; the next run of this skill corrects the archive.
-- `CLAUDE.md` should not duplicate Backlog/Activity Log content. Track project identity, stack, conventions, and constraints here; point to Notion (link the pages, if `CLAUDE.md`'s `### Notion workspace` heading has real URLs) for Backlog/Activity Log/Design Decisions rather than restating them.
+- `CLAUDE.md` should not duplicate Backlog/Activity Log content. Track project identity, stack, conventions, and constraints here; point to Notion (link the pages, if `CLAUDE.md`'s `### Notion workspace` heading has real URLs) for Backlog/Activity Log/Design Decisions/Open Discussions rather than restating them.
 
 ## What counts as project state (for the CLAUDE.md write)
 
@@ -58,9 +58,10 @@ At the Claude-solicited checkpoint, do a cheap staleness check before asking —
 If `CLAUDE.md` has a `### Notion workspace` heading with real page links (not the "not yet bootstrapped" placeholder), every run of this skill:
 
 1. Fetches the project's Activity Log page via Notion MCP and writes its content verbatim to `docs/archive/activity-log.md`.
-2. Updates this project's Project Links row via the `link-project` skill (`~/.claude/skills/link-project/SKILL.md`) — bump `Last Synced` to today.
+2. Fetches the project's Open Discussions page via Notion MCP and writes its content verbatim to `docs/archive/open-discussions.md`.
+3. Updates this project's Project Links row via the `link-project` skill (`~/.claude/skills/link-project/SKILL.md`) — bump `Last Synced` to today.
 
-Neither step needs a separate go-ahead — they're mechanical snapshots of what's already live in Notion, not new content being authored. Do them regardless of whether this run also produces a `CLAUDE.md` edit.
+None of these steps need a separate go-ahead — they're mechanical snapshots of what's already live in Notion, not new content being authored. Do them regardless of whether this run also produces a `CLAUDE.md` edit.
 
 If the `### Notion workspace` heading is missing or still a placeholder, this project hasn't been bootstrapped into Notion — skip both steps silently, don't prompt to set it up unless the user brings it up.
 
@@ -72,5 +73,7 @@ If (and only if) this invocation carries an explicit "this solidified" / "lock t
 2. Fetch the project's Design Decisions page and write it verbatim to `docs/archive/design-decisions.md`.
 
 Always do these **as a pair** — never pull one without the other, so a locked decision and the backlog item it resolves can't drift apart in the snapshot. This is additional to the unconditional Activity Log archive above, not a replacement for it.
+
+This pair is intentionally Backlog + Design Decisions only — Open Discussions is archived unconditionally every run (see above), not gated behind the solidify signal, since it has no locked/settled state to pair against.
 
 This pair-archive also doesn't need a separate go-ahead, for the same reason as the Activity Log archive — it's a snapshot of Notion content that already exists, not new authored content.

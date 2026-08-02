@@ -92,7 +92,7 @@ Regardless of project type, ask about the following. Offer the suggested default
 
 **MCP (Model Context Protocol):** Ask if they plan to use MCP servers for this project — e.g. connecting to GitHub, databases, Figma, or other services directly from Claude. If yes, ask which integrations matter so `CLAUDE.md` can note which MCP connectors this project expects to have available.
 
-**Notion project tracking (Backlog / Activity Log / Design Decisions):** Ask if they want this project's Backlog, Activity Log, and Design Decisions tracked in Notion — these are Notion pages read and written live via Notion MCP during a session; this repo never keeps working copies of them. If yes:
+**Notion project tracking (Backlog / Activity Log / Design Decisions / Open Discussions):** Ask if they want this project's Backlog, Activity Log, Design Decisions, and Open Discussions tracked in Notion — these are Notion pages read and written live via Notion MCP during a session; this repo never keeps working copies of them. If yes:
   - If Step 0 already found a matching Project Links row, this project's Notion pages may already exist (an `ai-only` row from a prior Claude.ai session, or a `code-only`/`linked` row from earlier setup). Don't re-bootstrap blindly — check what Step 0 found first.
   - If no pages exist yet, they get created by running `bootstrap-notion-project` (from the paired Claude.ai project) — note in `CLAUDE.md` (Step 5) that this is wanted but not yet bootstrapped.
   - Flag the **one-time, per-machine manual step** to connect the Notion MCP server (an interactive OAuth login, not something intake or any skill can do on its own) — point the user to `docs/notion-mcp-setup.md`.
@@ -124,7 +124,7 @@ Give them a chance to redirect before you write anything. Don't skip this step.
 
 Once you have enough context:
 
-1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward. This should stay a summary — it is not the place for open TODOs (that's Notion's Backlog page) or a duplicate of Activity Log/Design Decisions content.
+1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward. This should stay a summary — it is not the place for open TODOs (that's Notion's Backlog page) or a duplicate of Activity Log/Design Decisions/Open Discussions content.
 2. Replace the stub `CLAUDE.md` in this repo with the generated version. If the stub contains any `@path` import lines (e.g. `@docs/some-file.md`), carry them forward into the generated version unchanged — don't drop them, or the docs they pull in get silently orphaned.
 3. If Step 3 surfaced that the user wants Notion project tracking, add this heading to `CLAUDE.md`:
 
@@ -134,6 +134,7 @@ Once you have enough context:
    - Backlog: [not yet bootstrapped — run bootstrap-notion-project]
    - Activity Log: [not yet bootstrapped — run bootstrap-notion-project]
    - Design Decisions: [not yet bootstrapped — run bootstrap-notion-project]
+   - Open Discussions: [not yet bootstrapped — run bootstrap-notion-project]
 
    These are the working copies — read and written live via Notion MCP,
    never edited through this repo. `docs/archive/*.md` holds periodic

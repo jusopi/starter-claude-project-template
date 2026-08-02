@@ -54,9 +54,9 @@ Either way, once you've set up your own remote (`git remote add origin <your-new
 
 ## How it's structured
 
-- **`CLAUDE.md`** — the project's root instruction file, loaded automatically by Claude Code. Starts as a stub with a placeholder `## Project` section. Intake replaces the stub's project section. Covers project identity, stack, and conventions — not a duplicate of Backlog/Activity Log/Design Decisions, which live in Notion (see below).
+- **`CLAUDE.md`** — the project's root instruction file, loaded automatically by Claude Code. Starts as a stub with a placeholder `## Project` section. Intake replaces the stub's project section. Covers project identity, stack, and conventions — not a duplicate of Backlog/Activity Log/Design Decisions/Open Discussions, which live in Notion (see below).
 - **`docs/project-intake.md`** — the guided intake script Claude follows to classify the project, ask the right questions for that type, generate the initial `CLAUDE.md`, and set up the Project Links row. Available on demand ("run project intake") or auto-offered when Code finds no populated `CLAUDE.md` and no matching Project Links row at all. Stays in the repo permanently in case you need to re-run intake later.
-- **`docs/archive/`** — read-only, one-way local snapshots of the project's Notion Backlog/Activity Log/Design Decisions pages, refreshed by `/update-claude`. A GitHub-hosted backup in case Notion is ever unavailable, never a working document — see `docs/archive/README.md`.
+- **`docs/archive/`** — read-only, one-way local snapshots of the project's Notion Backlog/Activity Log/Design Decisions/Open Discussions pages, refreshed by `/update-claude`. A GitHub-hosted backup in case Notion is ever unavailable, never a working document — see `docs/archive/README.md`.
 - **`docs/notion-mcp-setup.md`** — one-time, per-machine Notion MCP OAuth setup, needed for Project Links lookups and any direct Notion reads/writes during a session.
 - **`docs/notion-skills/`** — backup exports of the account-level Claude.ai skills (`bootstrap-notion-project`, `update-notion-project`) that manage a project's Notion workspace from the ai side.
 - **`.claude/skills/update-claude/SKILL.md`** — the `/update-claude` skill, described below.
@@ -65,22 +65,26 @@ Either way, once you've set up your own remote (`git remote add origin <your-new
 
 **Guided intake** — `docs/project-intake.md` adapts its questions to your project type instead of using one generic checklist, checks the Project Links database before assuming a project is brand new, and always checks in before writing anything to `CLAUDE.md`.
 
-**`/update-claude` skill** — invoke it any time you want `CLAUDE.md` updated (e.g. "update CLAUDE.md with what we just decided"), or let Claude offer to update it at the end of a session or after a major decision. It always confirms with you before writing to `CLAUDE.md`. On every run it also refreshes `docs/archive/activity-log.md` from Notion and bumps the Project Links row's Last Synced date, unconditionally; if the session carries an explicit "this solidified"/"lock this in" signal, it additionally archives Backlog and Design Decisions together. It never pushes local content back to Notion — Notion is the only writable copy of those three pages.
+**`/update-claude` skill** — invoke it any time you want `CLAUDE.md` updated (e.g. "update CLAUDE.md with what we just decided"), or let Claude offer to update it at the end of a session or after a major decision. It always confirms with you before writing to `CLAUDE.md`. On every run it also refreshes `docs/archive/activity-log.md` and `docs/archive/open-discussions.md` from Notion and bumps the Project Links row's Last Synced date, unconditionally; if the session carries an explicit "this solidified"/"lock this in" signal, it additionally archives Backlog and Design Decisions together. It never pushes local content back to Notion — Notion is the only writable copy of those three pages.
 
 ## Project Links database (Notion)
 
-**Project Links** is a Notion database, one row per project, that pairs a Claude.ai project ("ai side") with a code repo ("code side"): Project Name (the join key), AI Project URL, Code Repo URL, Link Status (`ai-only` / `code-only` / `linked` / `stale`), Last Synced, plus relations to that project's Backlog / Activity Log / Design Decisions pages.
+**Project Links** is a Notion database, one row per project, that pairs a Claude.ai project ("ai side") with a code repo ("code side"): Project Name (the join key), AI Project URL, Code Repo URL, Link Status (`ai-only` / `code-only` / `linked` / `stale`), Last Synced, plus relations to that project's Backlog / Activity Log / Design Decisions / Open Discussions pages.
 
 This database already exists in your Notion workspace (created once per user, not per project) — this repo doesn't provision it, only reads and writes rows in it via the `link-project` personal skill (see "Machine-level prerequisites" above). Intake looks up this project's row before deciding whether to create one; `bootstrap-notion-project` (the ai-side skill, see `docs/notion-skills/`) does the same when a project solidifies from the Claude.ai side.
 
-Backlog, Activity Log, and Design Decisions are **Notion pages**, not local files — read and written live via Notion MCP during a session, and treated as the sole source of truth. `docs/archive/*.md` is a periodic read-only snapshot for backup, never a working copy Code reads from during normal work.
+Backlog, Activity Log, Design Decisions, and Open Discussions are **Notion pages**, not local files — read and written live via Notion MCP during a session, and treated as the sole source of truth. `docs/archive/*.md` is a periodic read-only snapshot for backup, never a working copy Code reads from during normal work.
+
+**Open Discussions** is the fourth of these Notion pages: ongoing, inconclusive, topic-based ideas picked up across multiple sessions that have no defined next action and no resolution yet. An item lives there only while genuinely unresolved — it graduates out exactly once, into Backlog (once it becomes a concrete actionable item) or into Design Decisions (once it's settled), and is removed from Open Discussions at that point; it's never left duplicated in both places after graduating. Unlike Backlog/Design Decisions, its archive snapshot (`docs/archive/open-discussions.md`) refreshes every `/update-claude` run unconditionally, same cadence as Activity Log, since it has no locked/settled state to gate a refresh on.
+
+The paired Claude.ai side's workspace also has an **Instructions** page, but only for projects still `ai-only` — once a code repo exists (`linked`), `CLAUDE.md` is that project's standing-context doc and no Instructions page is created or maintained going forward.
 
 Prerequisite: `docs/notion-mcp-setup.md`'s one-time, per-machine Notion MCP OAuth connection.
 
 ## Conventions to keep in mind
 
 - Treat `CLAUDE.md` as living documentation: update it through `/update-claude` rather than editing it silently, so changes are deliberate and confirmed.
-- Treat Notion's Backlog/Activity Log/Design Decisions pages the same way — direct edits during a session are fine, but never hand-edit `docs/archive/*.md`; it's overwritten on the next `/update-claude` run.
+- Treat Notion's Backlog/Activity Log/Design Decisions/Open Discussions pages the same way — direct edits during a session are fine, but never hand-edit `docs/archive/*.md`; it's overwritten on the next `/update-claude` run.
 
 ## Notes
 

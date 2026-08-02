@@ -2,8 +2,11 @@
 
 This is a **one-time, per-machine, manual step** — it can't be done by
 Claude Code editing files, since connecting a hosted MCP server requires
-an interactive OAuth login in a browser. Run this once before `sync-notion`
-can do anything.
+an interactive OAuth login in a browser. Run this once before anything in
+this template that touches Notion can work: the **Project Links**
+database lookups (project intake, `/update-claude`'s archive pulls) and
+direct reads/writes to a project's Backlog / Activity Log / Design
+Decisions pages during a session.
 
 ## 1. Add the server
 
@@ -52,7 +55,8 @@ tab or a cancelled login leaves the server showing `! Needs authentication`.
 - Each teammate/clone needs to run step 2 on their own machine — the
   `.mcp.json` declaration is shared, but the OAuth token is not.
 - If this project hasn't been bootstrapped into Notion yet (no
-  `### Notion workspace` heading in `CLAUDE.md`), run `bootstrap-notion-project`
-  first — there's nothing for `sync-notion` to push to or pull from until
-  that workspace exists.
+  `### Notion workspace` heading in `CLAUDE.md`, or that heading is still a
+  placeholder), run `bootstrap-notion-project` first — there's nothing for
+  the Project Links lookups or `/update-claude`'s archive pulls to read
+  until that workspace exists.
 - To remove the connector later: `claude mcp remove notion`.

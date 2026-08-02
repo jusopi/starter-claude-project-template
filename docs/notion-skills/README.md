@@ -19,9 +19,9 @@ just a drop point so a new clone of this template ships with the current
 
 1. In the target Claude.ai account, go to Settings → Skills.
 2. Upload each `.zip` from this folder.
-3. Confirm both show up as installed before relying on the
-   `sync-notion:managed` marker (see `docs/notion-mcp-setup.md` and
-   `.claude/skills/sync-notion/SKILL.md`).
+3. Confirm both show up as installed before relying on them — `bootstrap-notion-project`
+   is also what creates/updates this project's row in the Notion Project
+   Links database (see the main `README.md`).
 
 ## Keeping them current
 
@@ -31,3 +31,9 @@ edited in Claude.ai after the zips here were exported, the copies in this
 repo go stale silently; nothing checks or warns about drift. Re-export and
 replace the file here whenever the skill changes, the same way you'd update
 a vendored dependency.
+
+**These backups only** — after any change to the zips in this folder (e.g.
+the Project Links integration and `sync-notion` cleanup this repo shipped),
+you still need to manually re-upload the updated `.zip`s to Settings →
+Skills in the target Claude.ai account for the change to actually take
+effect there. Updating the file in this repo doesn't touch Claude.ai.

@@ -1,6 +1,39 @@
 # Project Intake
 
-You are running project intake for a newly cloned template repo. Your job is to gather enough context to write a complete, project-specific `CLAUDE.md`, then replace this stub with that file.
+Intake is **not** a mandatory first step. Run it on demand — the user says
+"run project intake" or points Claude at this file — or auto-offer it when
+Code finds *both* of the following true: `CLAUDE.md`'s `## Project` section
+is still the "Awaiting project context" stub, **and** no Project Links row
+exists for this directory/repo at all (checked via the `link-project`
+skill — see Step 0). If a Project Links row already exists (e.g. `ai-only`,
+seeded from an ai voice/chat session before any code existed), that's not
+by itself a reason to skip intake — it just means Step 0 has a head start
+on what this project already is.
+
+Your job is to gather enough context to write a complete, project-specific
+`CLAUDE.md`, then replace the stub with that file.
+
+## Step 0 — Check Project Links first
+
+Before asking anything else, invoke the `link-project` skill
+(`~/.claude/skills/link-project/SKILL.md`) to look up this project by name
+in the Notion **Project Links** database. This is a per-machine personal
+skill, not part of this repo — see `README.md`'s "Machine-level
+prerequisites" section if it isn't installed.
+
+- **No match:** this is a fresh project on both sides. Continue to Step 1
+  normally; `link-project` will be invoked again at the end of Step 3 to
+  create the row.
+- **Match found, `ai-only`:** an ai Project already exists for this idea —
+  a paired Claude.ai project has already done some of the thinking. Ask the
+  user if they want to pull that context into intake (e.g. by pasting in
+  what's been discussed there, or fetching the ai Project's Instructions
+  page via Notion MCP if they'd rather Claude read it directly) before
+  proceeding to Step 1, so intake isn't starting from zero when it doesn't
+  need to.
+- **Match found, `code-only` or `linked`:** unusual for a fresh clone
+  running intake — flag it to the user and confirm this is actually the
+  right repo/project before proceeding, rather than assuming.
 
 ## Step 1 — Classify
 
@@ -59,11 +92,12 @@ Regardless of project type, ask about the following. Offer the suggested default
 
 **MCP (Model Context Protocol):** Ask if they plan to use MCP servers for this project — e.g. connecting to GitHub, databases, Figma, or other services directly from Claude. If yes, ask which integrations matter so `CLAUDE.md` can note which MCP connectors this project expects to have available.
 
-**Notion sync (optional):** Ask if they use a Claude.ai project alongside Claude Code for this project — e.g. voice/chat sessions for ideation or spec-drafting away from the repo — and if so, whether they want a Notion workspace that mirrors `CLAUDE.md`/`docs/backlog.md`/`docs/activity-log.md`/`docs/design-decisions.md`, plus a queue page for ideas raised in a Claude.ai session with no live Claude Code session to catch them. If yes:
-  - Note in `CLAUDE.md` (Step 5) that Notion sync is wanted but the workspace itself isn't set up yet — the actual pages get created by running `bootstrap-notion-project` afterward, which produces the real page URLs `CLAUDE.md`'s `### Notion workspace` heading needs.
-  - Flag that this also requires a **one-time, per-machine manual step** to connect the Notion MCP server to Claude Code (an interactive OAuth login, not something intake or any skill can do on its own) — point the user to `docs/notion-mcp-setup.md` for the exact commands.
-  - Ongoing sync (pushing local changes to the mirror pages, and surfacing queued ideas from the queue page) is then handled by the `sync-notion` skill, invoked from `update-claude` — see that skill for the mechanics.
-  - If no, or undecided, skip this — don't add a placeholder heading for something not opted into. `sync-notion`/`update-claude` both silently skip Notion entirely when no `### Notion workspace` heading exists, so there's no cost to leaving it out until/unless the user wants it later.
+**Notion project tracking (Backlog / Activity Log / Design Decisions):** Ask if they want this project's Backlog, Activity Log, and Design Decisions tracked in Notion — these are Notion pages read and written live via Notion MCP during a session; this repo never keeps working copies of them. If yes:
+  - If Step 0 already found a matching Project Links row, this project's Notion pages may already exist (an `ai-only` row from a prior Claude.ai session, or a `code-only`/`linked` row from earlier setup). Don't re-bootstrap blindly — check what Step 0 found first.
+  - If no pages exist yet, they get created by running `bootstrap-notion-project` (from the paired Claude.ai project) — note in `CLAUDE.md` (Step 5) that this is wanted but not yet bootstrapped.
+  - Flag the **one-time, per-machine manual step** to connect the Notion MCP server (an interactive OAuth login, not something intake or any skill can do on its own) — point the user to `docs/notion-mcp-setup.md`.
+  - Ongoing archiving of these pages into `docs/archive/` (a read-only local backup, never a working copy) is handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`.
+  - If no, or undecided, skip this — don't add a placeholder heading for something not opted into.
 
 **Project-type-specific tooling:** Offer relevant defaults for the classified type rather than asking generically:
 - *Game:* Godot or Unity for engine, Aseprite for pixel art, itch.io for playtest distribution.
@@ -75,6 +109,11 @@ For each category, capture whatever the user actually wants (confirmed default, 
 
 If a spec/PM system is planned, ask a quick follow-up on how it should integrate — e.g., should Claude read/write spec files directly, reference issue IDs in commits, check a backlog file before starting work. Note in `CLAUDE.md` if no formal system is in use, so future sessions don't go looking for one.
 
+**Project Links:** Once the project has a name and this repo exists, invoke `link-project` to record it:
+  - If Step 0 found no existing row, create one — `code-only` if no paired ai Project exists (or the user wants to create one later), `linked` if a paired ai Project already exists or is being created alongside this intake session (get its URL).
+  - If Step 0 found an `ai-only` row, update it to `linked` and fill in this repo's URL — never create a second row for the same project.
+  - See `~/.claude/skills/link-project/SKILL.md` for the exact mechanics; this repo doesn't reimplement that lookup/create/update logic.
+
 ## Step 4 — Check before finalizing
 
 After your first round of questions, ask the user directly: **"Does this cover what matters, or is there something I should dig into differently?"**
@@ -85,28 +124,36 @@ Give them a chance to redirect before you write anything. Don't skip this step.
 
 Once you have enough context:
 
-1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward.
+1. Synthesize all answers into a complete `CLAUDE.md` covering: project overview, tech/tooling decisions, constraints, conventions, and anything Claude should know to work autonomously on this project going forward. This should stay a summary — it is not the place for open TODOs (that's Notion's Backlog page) or a duplicate of Activity Log/Design Decisions content.
 2. Replace the stub `CLAUDE.md` in this repo with the generated version. If the stub contains any `@path` import lines (e.g. `@docs/some-file.md`), carry them forward into the generated version unchanged — don't drop them, or the docs they pull in get silently orphaned.
-3. Initialize the three companion docs the same pass — `docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md` — each already present as a stub. Replace a stub with real starter content if intake surfaced anything that belongs there (e.g. an initial backlog item, an already-locked decision); otherwise leave it stubbed-but-present rather than deleting it. Do not fold their contents into `CLAUDE.md` itself — `CLAUDE.md` should stay a summary, not a duplicate checklist.
-4. If Step 3 surfaced that the user wants Notion sync, add this exact placeholder heading to `CLAUDE.md`:
+3. If Step 3 surfaced that the user wants Notion project tracking, add this heading to `CLAUDE.md`:
 
    ```markdown
    ### Notion workspace
 
-   `sync-notion:managed`
+   - Backlog: [not yet bootstrapped — run bootstrap-notion-project]
+   - Activity Log: [not yet bootstrapped — run bootstrap-notion-project]
+   - Design Decisions: [not yet bootstrapped — run bootstrap-notion-project]
 
-   - Hub: [not yet bootstrapped — run bootstrap-notion-project]
-   - Instructions / Backlog / Activity Log / Design Decisions / notion-to-code-sync: TBD
-   - This Notion workspace is a mirror maintained by `sync-notion` — pages
-     are pushed from these local files, never edited directly in Notion.
-     `update-notion-project` should not run against it.
+   These are the working copies — read and written live via Notion MCP,
+   never edited through this repo. `docs/archive/*.md` holds periodic
+   read-only snapshots for backup only; see `docs/archive/README.md`.
    ```
 
-   The inline-code line `` `sync-notion:managed` `` right under the heading is the **actual signal** `update-notion-project` checks for — an exact substring match, not a fuzzy read of the prose below it. Never remove that line. The prose sentence after it exists for human readers only and can be freely reworded, shortened, or restructured without breaking anything — that's the point of separating them: a routine editorial pass on the readable text can't accidentally disable the safety check the way a single shared warning sentence could.
-
-   Do not fabricate real page URLs here. Prompt the user to run `bootstrap-notion-project` as a follow-up step; once that completes, its real page URLs replace the `TBD`/`not yet bootstrapped` placeholders, but the `` `sync-notion:managed` `` line and the warning paragraph both stay as-is.
+   Do not fabricate real page URLs here. Prompt the user to run
+   `bootstrap-notion-project` as a follow-up step; once that completes, its
+   real page URLs replace the placeholders.
+4. Do **not** initialize `docs/backlog.md`, `docs/activity-log.md`, or
+   `docs/design-decisions.md` — those files no longer exist as local working
+   docs. If Notion tracking was set up in Step 3, the `docs/archive/*.md`
+   stubs already in this repo will start reflecting real content the first
+   time `/update-claude` runs; nothing to seed here.
 5. Leave `docs/project-intake.md` in place — do not delete it. It stays in the repo in case the project needs re-intake or scope revisiting later.
 
 ## Ongoing maintenance
 
-CLAUDE.md is a living document, and so are its three companion docs (`docs/backlog.md`, `docs/activity-log.md`, `docs/design-decisions.md`). Ongoing updates to all four (user-initiated or Claude-solicited) are handled by the `/update-claude` skill — see `.claude/skills/update-claude/SKILL.md`. If a Notion workspace was set up for this project, `/update-claude` also keeps it in sync via the `sync-notion` skill — see `.claude/skills/sync-notion/SKILL.md`.
+`CLAUDE.md` is a living document. Ongoing updates (user-initiated or
+Claude-solicited) are handled by the `/update-claude` skill — see
+`.claude/skills/update-claude/SKILL.md`. That skill also keeps this
+project's Project Links row current and refreshes the `docs/archive/`
+snapshots from Notion; it never writes to Notion.
